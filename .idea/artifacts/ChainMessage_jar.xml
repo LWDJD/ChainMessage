@@ -1,0 +1,12 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ChainMessage:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/ChainMessage_jar</output-path>
+    <root id="archive" name="ChainMessage.jar">
+      <element id="module-output" name="ChainMessage" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../Users/15081/.m2/repository/com/alibaba/fastjson/2.0.48/fastjson-2.0.48.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../Users/15081/.m2/repository/com/alibaba/fastjson2/fastjson2-extension/2.0.48/fastjson2-extension-2.0.48.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../Users/15081/.m2/repository/org/jsoup/jsoup/1.18.1/jsoup-1.18.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../Users/15081/.m2/repository/com/alibaba/fastjson2/fastjson2/2.0.48/fastjson2-2.0.48.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
