@@ -36,7 +36,7 @@ public class Main {
                     }else if (c.equals("OKTC test")){
                         chain = "okexchain_test";
                     }
-                    System.out.print("\n请输入Key：");
+                    System.out.print("\n请输入x-apikey：");
                     String key = scanner.nextLine();
                     System.out.println("\n正在获取中，请稍后.......");
                     List<Map<String, Object>> txList = new ArrayList<>();
@@ -85,9 +85,9 @@ public class Main {
                                 // 将 Date 对象格式化为字符串
                                 String formattedDate = dateFormat.format(date);
 
-                                System.out.println(formattedDate+": 交易"+txList.get(i).get("hash"));
-                                System.out.println("                     发送方地址: " + txList.get(i).get("from"));
-                                System.out.println("                     接收方地址: " + txList.get(i).get("to"));
+                                System.out.println("["+formattedDate+"] 交易"+txList.get(i).get("hash"));
+                                System.out.println("                      发送方地址: " + txList.get(i).get("from"));
+                                System.out.println("                      接收方地址: " + txList.get(i).get("to"));
 
                             }
                             System.out.println();
@@ -120,7 +120,7 @@ public class Main {
                     }else if (c_2.equals("OKTC test")){
                         chain_2 = "okexchain_test";
                     }
-                    System.out.print("\n请输入Key：");
+                    System.out.print("\n请输入x-apikey：");
                     String key_2 = scanner.nextLine();
                     System.out.println("\n正在获取中，请稍后.......");
                     List<Map<String, Object>> txList_2 = new ArrayList<>();
@@ -170,9 +170,9 @@ public class Main {
                                 // 将 Date 对象格式化为字符串
                                 String formattedDate = dateFormat.format(date);
 
-                                System.out.println(formattedDate+": 交易"+txList_2.get(i).get("hash"));
-                                System.out.println("                     发送方地址: " + txList_2.get(i).get("from"));
-                                System.out.println("                     接收方地址: " + txList_2.get(i).get("to"));
+                                System.out.println("["+formattedDate+"] 交易"+txList_2.get(i).get("hash"));
+                                System.out.println("                      发送方地址: " + txList_2.get(i).get("from"));
+                                System.out.println("                      接收方地址: " + txList_2.get(i).get("to"));
                                 String[] Tx;
                                 try {
                                     Tx = getTx("https://www.oklink.com/zh-hans/oktc-test/tx/"+txList_2.get(i).get("hash"));
@@ -188,7 +188,7 @@ public class Main {
                                         System.out.println("                     UTF-8数据："+txI[2]);
                                     }
                                 }else {
-                                    System.out.println("检索失败，地址可能不存在或页面格式已更新！");
+                                    System.out.println("检索失败，交易可能不存在或页面格式已更新！");
                                 }
 
                             }
@@ -225,6 +225,8 @@ public class Main {
                     }else {
                         System.out.println("检索失败，地址可能不存在或页面格式已更新！");
                     }
+                    break;
+                case "4":
                     break;
                 default:
                     System.out.println("\n输入错误，请重新输入！\n");
