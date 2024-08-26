@@ -1,0 +1,8 @@
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-opacity: 0; /* 隐藏Tab的头部背景，这样关闭按钮也会被隐藏 */
+}
+
+/* 选择第二个Tab的关闭按钮并隐藏它 */
+.tab-pane .tab:nth-child(2) .tab-close-button {
+    -fx-visibility: hidden;
+}

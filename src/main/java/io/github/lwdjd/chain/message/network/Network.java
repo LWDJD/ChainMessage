@@ -1,4 +1,4 @@
-package io.github.lwdjd.chain.message.Network;
+package io.github.lwdjd.chain.message.network;
 
 import java.io.IOException;
 import java.net.URI;

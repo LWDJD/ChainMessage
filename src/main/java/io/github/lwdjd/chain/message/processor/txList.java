@@ -1,10 +1,9 @@
 package io.github.lwdjd.chain.message.processor;
 
 import com.alibaba.fastjson2.JSON;
-import io.github.lwdjd.chain.message.Network.*;
+import io.github.lwdjd.chain.message.network.Network;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +32,14 @@ public class txList {
     }
 
     public static List<Map<String, Object>> parseHitsList(String jsonData) {
+//        JSONObject  jsonObject = JSON.parseObject(jsonData);
+//        JSONArray hits = jsonObject.getJSONArray("data");
+//
+//
+//        List<Map<String, JSONObject>> hitsList = new  ArrayList<>();
+//        for(Object i :hits){
+//            hitsList.add()
+//        }
         // 使用 Fastjson 解析 JSON 数据到 Map
         Map<String, Object> dataMap = JSON.parseObject(jsonData, Map.class);
 
@@ -49,14 +56,14 @@ public class txList {
 
         return (List<Map<String, Object>>) data.get("hits");
     }
-//    public static void main(String[] args) {
-//        String[] data = getAddressTx("LWIzMWUtNDU0Ny05Mjk5LWI2ZDA3Yjc2MzFhYmEyYzkwM2NjfDI4MzUzNTIzODg5MDUwNDM=","0x8d86bc475bedcb08179c5e6a4d494ebd3b44ea8b",0,100,"okexchain_test");
-//        if(data[0].equals("0")){
-//            System.out.println("原始数据："+data[1]);
-//            List<Map<String, Object>> b =parseHitsList(data[1]);
-//            System.out.println("处理后的数据:"+b.get(0));
-//        }else{
-//            System.out.println("error");
-//        }
-//    }
+    public static void main(String[] args) {
+        String[] data = getAddressTx("LWIzMWUtNDU0Ny05Mjk5LWI2ZDA3Yjc2MzFhYmEyYzkwM2NjfDI4MzUzNTIzODg5MDUwNDM=","0x8d86bc475bedcb08179c5e6a4d494ebd3b44ea8b",0,100,"okexchain_test");
+        if(data[0].equals("0")){
+            System.out.println("原始数据："+data[1]);
+            List<Map<String, Object>> b =parseHitsList(data[1]);
+            System.out.println("处理后的数据:"+b.get(0));
+        }else{
+            System.out.println("error");
+        }
+    }
 }

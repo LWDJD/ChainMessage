@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="io.github.lwdjd.chain.message.fxml.SettingGuiController">
+    <children>
+        <ListView fx:id="settingListView" prefHeight="400.0" prefWidth="183.0" />
+        <Pane fx:id="detailsPane" layoutX="183.0" prefHeight="400.0" prefWidth="418.0">
+            <children>
+                <VBox fx:id="setting" prefHeight="400.0" prefWidth="417.0" />
+            </children>
+        </Pane>
+    </children>
+</AnchorPane>

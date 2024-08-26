@@ -1,6 +1,5 @@
 package io.github.lwdjd.chain.message.processor;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -8,6 +7,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static io.github.lwdjd.chain.message.processor.txList.getAddressTx;
+import static io.github.lwdjd.chain.message.processor.txList.parseHitsList;
 
 public class HtmlPageFetcher {
     public static String[] getHtml(String url) {
@@ -83,4 +88,88 @@ public class HtmlPageFetcher {
         return r;
 
     }
+    public static List<Map<String,Object>> getTxList(String key_2,String address_2 ,String chain_2) {
+        List<Map<String, Object>> txList_2 = new ArrayList<>();
+
+        int offset_2 = 0;
+        try {
+            while (true) {
+                String[] tx = getAddressTx(key_2, address_2, offset_2, 100, chain_2);
+                if (!tx[0].equals("0")) {
+                    break;
+                }
+                // 解析JSON字符串为JSONObject
+                JSONObject jsonObject = JSONObject.parse(tx[1]);
+                // 检查错误代码是否为0，如果不是0则退出循环
+                if(!jsonObject.getString("code").equals("0")){
+                    break;
+                }
+                List<Map<String, Object>> t = parseHitsList(tx[1]);
+                if(t.size()==0){
+                    break;
+                }
+                txList_2.addAll(t);
+                offset_2 = offset_2+t.size();
+            }
+        }catch (Exception e){
+            return null;
+        }
+        return txList_2;
+    }
+
+    /**
+     *
+     * @param key_2 X-API-KEY
+     * @param address_2 地址
+     * @param chain_2 链
+     * @param offset_2 起始位置
+     * @param once_2 结束位置（最大9999）
+     * @return 交易列表
+     */
+    public static List<Map<String,Object>> getArrayTxList(String key_2,String address_2,String chain_2,int offset_2,int once_2) {
+        List<Map<String, Object>> txList_2 = new ArrayList<>();
+
+        try {
+            while (offset_2 <= once_2) {
+                String[] tx = getAddressTx(key_2, address_2, offset_2, (once_2-offset_2)>100?100:offset_2, chain_2);
+                if (!tx[0].equals("0")) {
+                    break;
+                }
+                // 解析JSON字符串为JSONObject
+                JSONObject jsonObject = JSONObject.parse(tx[1]);
+                // 检查错误代码是否为0，如果不是0则退出循环
+                if(!jsonObject.getString("code").equals("0")){
+                    break;
+                }
+                List<Map<String, Object>> t = parseHitsList(tx[1]);
+                if(t.size()==0){
+                    break;
+                }
+                txList_2.addAll(t);
+                offset_2 = offset_2+t.size();
+            }
+        }catch (Exception e){
+            return null;
+        }
+        return txList_2;
+    }
+
+
+    public static void main(String[] args) {
+//        System.out.println(getTxList(
+//                "LWIzMWUtNDU0Ny05Mjk5LWI2ZDA3Yjc2MzFhYmEyYzkwM2NjfDI4MzUzNTIzODg5MDUwNDM=",
+//                "0x2b622ab34d01a2d01e405225711595395caf404b",
+//                "okexchain_test")
+//        );
+        System.out.println(getArrayTxList(
+                "LWIzMWUtNDU0Ny05Mjk5LWI2ZDA3Yjc2MzFhYmEyYzkwM2NjfDI4MzUzNTIzODg5MDUwNDM=",
+                "0x2b622ab34d01a2d01e405225711595395caf404b",
+                "okexchain_test",
+                14,
+                100
+                ).size()
+        );
+    }
+
+
 }
