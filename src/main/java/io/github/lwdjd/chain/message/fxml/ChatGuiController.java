@@ -4,6 +4,7 @@ import io.github.lwdjd.chain.message.account.Account;
 import io.github.lwdjd.chain.message.chat.Chat;
 import io.github.lwdjd.chain.message.chat.ChatMessage;
 import io.github.lwdjd.chain.message.processor.Message;
+import io.github.lwdjd.chain.message.web3.Web3;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,27 +14,29 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 
+import java.math.BigInteger;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static io.github.lwdjd.chain.message.processor.Message.isMessyCode;
 import static io.github.lwdjd.chain.message.processor.Message.loadMessageHash;
 
 // 控制器类
 public class ChatGuiController implements Initializable {
-    public Button enterButton;
+    public Button sendMessageButton;
     public TextArea chatMessage;
     public ListView<ChatMessage> chattingRecords;
     public MenuItem accountMenuItem;
@@ -45,6 +48,9 @@ public class ChatGuiController implements Initializable {
     public ListView<Chat> chatList;
     public Pane unlockPlan;
     public Label chatLabel = new Label("");
+    public static Map<String, Boolean> chatRefreshMap =new HashMap<>();
+    public Button refresh;
+    public Button unlockingedAccountButton;
 
 
     @Override
@@ -70,6 +76,17 @@ public class ChatGuiController implements Initializable {
         List<Account> accountList = Account.getAccountList();
         ObservableList<Account> acList = FXCollections.observableArrayList(accountList);
         this.accountList.setItems(acList);
+        this.accountList.getSelectionModel().selectedItemProperty().addListener((obs, oldAccount, newAccount) ->{
+            if (newAccount!=null) {
+                if (newAccount.verificationKey()){
+                    unlockingedAccountButton.setText("锁定账户");
+                }else {
+                    unlockingedAccountButton.setText("解锁账户");
+                }
+            }else {
+                unlockingedAccountButton.setText("解锁账户");
+            }
+        });
         this.accountList.setConverter(new StringConverter<>() {
             @Override
             public String toString(Account account) {
@@ -89,9 +106,227 @@ public class ChatGuiController implements Initializable {
         ObservableList<Chat> cList = FXCollections.observableArrayList(chatList);
         this.chatList.setItems(cList);
     }
+//    @FXML
+//    public void unlockingedAccountAction(ActionEvent event){
+//        if (accountList.getSelectionModel().getSelectedItem() != null){
+//            if(accountList.getSelectionModel().getSelectedItem().verificationKey()){
+//                accountList.getSelectionModel().getSelectedItem().lockAccount();
+//                unlockingedAccountButton.setText("解锁账户");
+//            }else {
+//                // 创建一个自定义的Alert
+//                Alert alert = new Alert(Alert.AlertType.INFORMATION, "输入密码解锁账户", ButtonType.OK, ButtonType.CANCEL);
+//                alert.setHeaderText("解锁账户");
+//
+//                // 创建一个PasswordField并添加到Alert中
+//                PasswordField passwordField = new PasswordField();
+//                passwordField.setPromptText("请输入密码");
+//
+//                // 使用GridPane布局来组织内容
+//                GridPane grid = new GridPane();
+//                grid.add(passwordField, 0, 1);
+//
+//                alert.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+//                alert.getDialogPane().setContent(grid);
+//
+////                // 设置Alert的图标和标题
+////                ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().add(new Image("path/to/icon.png"));
+////                alert.initModality(Modality.APPLICATION_MODAL);
+//
+//                // 显示Alert并等待用户响应
+//                alert.showAndWait().ifPresent(button -> {
+//                    if (button == ButtonType.OK) {
+//                        // 用户点击了OK，获取PasswordField中的内容并尝试解锁
+//                        if (!accountList.getSelectionModel().getSelectedItem().unlockAccount(passwordField.getText())){
+//                            Alert alert_2 = new Alert(Alert.AlertType.WARNING, "密码错误!!", ButtonType.OK);
+//                            alert_2.showAndWait();
+//                        }else {
+//                            unlockingedAccountButton.setText("锁定账户");
+//                        }
+//                    }
+//                });
+//            }
+//
+//        }else {
+//            Alert alert = new Alert(Alert.AlertType.WARNING, "请选择一个账户再解锁(锁定)!!", ButtonType.OK);
+//            alert.showAndWait();
+//        }
+//    }
+@FXML
+public void unlockingedAccountAction(ActionEvent event) {
+    final Account selectedAccount = accountList.getSelectionModel().getSelectedItem();
+    if (selectedAccount != null) {
+        try {
+            if (!selectedAccount.verificationKey()) {
+                // 显示输入密码的对话框
+                showUnlockAccountPopup();
+            } else {
+                selectedAccount.lockAccount();
+                unlockingedAccountButton.setText("解锁账户");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "发生错误: " + e.getMessage(), ButtonType.OK).showAndWait();
+        }
+    } else {
+        new Alert(Alert.AlertType.WARNING, "请选择一个账户再解锁(锁定)!!", ButtonType.OK).showAndWait();
+    }
+}
+
+    public void showUnlockAccountPopup() {
+        // 创建密码输入对话框
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle("解锁账户 - " + accountList.getSelectionModel().getSelectedItem().getName());
+
+        // 创建密码输入框
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("请输入密码");
+
+        // 创建确认解锁按钮
+        Button unlockButton = new Button("确认解锁");
+        unlockButton.setOnAction(event -> {
+            // 获取密码并进行解锁操作
+            String password = passwordField.getText();
+            if (password != null && !password.isEmpty()) {
+                unlockAccount(password);
+                dialog.close(); // 关闭对话框
+            }
+        });
+
+
+
+        // 使用GridPane布局来组织内容
+        GridPane grid = new GridPane();
+        grid.add(passwordField, 0, 0);
+        grid.add(unlockButton, 1, 0);
+        grid.setHgap(5); // 设置水平间距
+        grid.setVgap(5); // 设置垂直间距
+
+        // 设置对话框的内容和按钮
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL);
+
+        // 显示对话框并等待用户响应
+        dialog.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.CANCEL) {
+                // 用户点击了取消按钮，不执行任何操作
+            }
+        });
+    }
+
+    private void unlockAccount(String password) {
+        // 根据获取的密码进行解锁账户的逻辑
+        // 例如:
+        // if (account.authenticate(password)) {
+        //     account.unlock();
+        //     unlockingedAccountButton.setText("锁定账户");
+        // } else {
+        //     // 密码错误处理
+        // }
+        if (password != null && accountList.getSelectionModel().getSelectedItem().unlockAccount(password)) {
+            unlockingedAccountButton.setText("锁定账户");
+        } else {
+            new Alert(Alert.AlertType.WARNING, "密码错误!!", ButtonType.OK).showAndWait();
+        }
+
+
+    }
     @FXML
     public void enterButtonAction(ActionEvent event) {
+
         // 在这里添加你想要执行的代码
+        if (accountList.getSelectionModel().getSelectedItem() != null){
+            if (chatList.getSelectionModel().getSelectedItem() != null){
+                if (chatList.getSelectionModel().getSelectedItem().verificationKey()) {
+                    if (accountList.getSelectionModel().getSelectedItem().verificationKey()){
+                        System.out.println( "由 "+accountList.getSelectionModel().getSelectedItem().getName()+" 发送至 "+
+                                chatList.getSelectionModel().getSelectedItem().getRemarkName()+" 的消息：\n"+
+                                chatMessage.getText());
+                        new Thread(() ->sendMessage(
+                                chatList.getSelectionModel().getSelectedItem(),
+                                accountList.getSelectionModel().getSelectedItem(),
+                                chatMessage.getText()
+                        )).start();
+                    }else {
+                        Alert alert = new Alert(Alert.AlertType.WARNING, "请解锁账户再发送!!", ButtonType.OK);
+                        alert.showAndWait();
+                    }
+                }else {
+                    Alert alert = new Alert(Alert.AlertType.WARNING, "请解锁聊天再发送!!", ButtonType.OK);
+                    alert.showAndWait();
+                }
+            }else {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "请选择聊天再发送!!", ButtonType.OK);
+                alert.showAndWait();
+            }
+        }else {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "请选择账户再发送!!", ButtonType.OK);
+            alert.showAndWait();
+        }
+
+
+    }
+
+    public static void sendMessage(Chat chat,Account account,String message){
+        BigInteger gasPrice;
+        try {
+            gasPrice = Web3.getGasPrice().divide(BigInteger.valueOf(1000));
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("悲报 · 发送失败");
+                alert.setHeaderText("gas价格获取失败");
+                alert.setContentText("gas价格获取失败,无法发送！！");
+                alert.showAndWait();
+            });
+            return;
+        }
+        byte[] bytes = message.getBytes(StandardCharsets.UTF_8);
+        long byteCount = bytes.length; // 获取字节数组的长度
+        EthSendTransaction ethSendTransaction = null;
+        try {
+            ethSendTransaction = Web3.sendTransaction(
+                                        account.getPrivateKey(),
+                                        chat.getAddress(),
+                                        message,
+                                        gasPrice,
+                                        BigInteger.valueOf(byteCount).multiply(BigInteger.valueOf(68)).add(BigInteger.valueOf(21000))
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (ethSendTransaction!=null&&ethSendTransaction.getError()==null){
+            ChatGuiController.chatGuiController.chatMessage.clear();
+            EthSendTransaction finalEthSendTransaction = ethSendTransaction;
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("喜讯 · 消息提交成功");
+                alert.setHeaderText("消息提交成功(不代表发送成功)");
+                alert.setContentText("Hash : " + finalEthSendTransaction.getTransactionHash());
+                alert.showAndWait();
+                ChatGuiController.chatGuiController.reFlushChattingRecords();
+            });
+        }else {
+            if (ethSendTransaction != null) {
+                EthSendTransaction finalEthSendTransaction1 = ethSendTransaction;
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("悲报 · 发送失败");
+                    alert.setHeaderText("发送失败");
+                    alert.setContentText("发送失败 : " + finalEthSendTransaction1.getError().getMessage());
+                    alert.showAndWait();
+                });
+            }else {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("悲报 · 发送失败");
+                    alert.setHeaderText("发送失败");
+                    alert.setContentText("发送失败 ：无返回数据");
+                    alert.showAndWait();
+                });
+            }
+        }
     }
 
     /**
@@ -145,6 +380,12 @@ public class ChatGuiController implements Initializable {
             this.chatList.setItems(cList);
         }catch (Exception ignored){
 
+        }
+    }
+
+    public void reFlushChattingRecords(){
+        if (chatList.getSelectionModel().getSelectedItem()!=null&& chatList.getSelectionModel().getSelectedItem().verificationKey()) {
+            loadChattingRecords(chatList.getSelectionModel().getSelectedItem());
         }
     }
 
@@ -220,6 +461,7 @@ public class ChatGuiController implements Initializable {
     }
 
     public void loadChattingRecords(Chat chat){
+        chatRefreshMap.put(chat.getAddress(),true);
         thisChatAddress = chat.getAddress();
 //        Sender sender = new Sender("0x0000000000000000000000000000000000000000",null);
         if ( Message.getThreads().get(chat.getAddress()) == null || Message.getThreads().get(chat.getAddress()).getState() == Thread.State.TERMINATED ){
@@ -235,6 +477,7 @@ public class ChatGuiController implements Initializable {
 //        }else {
 //            System.out.println(chat.getAddress()+"上次的聊天记录更新线程未结束或没有聊天记录");
 //        }
+
         new Thread(() -> loadMessage(chat)).start();
 
 
@@ -255,14 +498,18 @@ public class ChatGuiController implements Initializable {
                     chatMessageList.add(0,chatMessage);
                 }
             }
-            Platform.runLater(() -> {
-                // 更新UI组件的代码
-                System.out.println("更新UI");
-                chatGuiController.chattingRecords.getItems().clear();
-                chatGuiController.addChattingRecordsAll(chatMessageList);
-            ChatGuiController.chatGuiController.chattingRecords.scrollTo(ChatGuiController.chatGuiController.chattingRecords.getItems().size());
-            });
+            if (chatRefreshMap.get(chat.getAddress())) {
+                Platform.runLater(() -> {
+                    // 更新UI组件的代码
+                    System.out.println("更新UI");
+                    chatGuiController.chattingRecords.getItems().clear();
+                    chatGuiController.addChattingRecordsAll(chatMessageList);
 
+                    ChatGuiController.chatGuiController.chattingRecords.scrollTo(ChatGuiController.chatGuiController.chattingRecords.getItems().size());
+                    chatRefreshMap.put(chat.getAddress(),false);
+
+                });
+            }
 
         }else {
             System.out.println("聊天记录为空");

@@ -52,6 +52,10 @@ public class Web3 {
         return null;
     }
 
+    public static BigInteger getGasPrice() throws ExecutionException, InterruptedException {
+      return web3j_OKTC_test.ethGasPrice().sendAsync().get().getGasPrice();
+    }
+
     public static BigInteger getTransactionCount(String address) {
 
         // 获取最新的区块号
@@ -144,7 +148,7 @@ public class Web3 {
     }
     /**
      * 发送交易
-     * @param fromPrivateKey 地址
+     * @param fromPrivateKey 私钥
      * @param toAddress 目标地址
      * @param message 附加信息
      * @param gasPrice gas价格
@@ -189,7 +193,7 @@ public class Web3 {
 
     /**
      * 发送交易
-     * @param fromPrivateKey 地址
+     * @param fromPrivateKey 私钥
      * @param toAddress 目标地址
      * @param message 附加信息
      * @param gasPrice gas价格

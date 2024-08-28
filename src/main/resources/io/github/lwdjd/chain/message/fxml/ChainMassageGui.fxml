@@ -32,9 +32,11 @@
          </children>
       </VBox>
       <TextArea fx:id="chatMessage" layoutX="203.0" layoutY="501.0" prefHeight="99.0" prefWidth="620.0" />
-      <Label fx:id="chatLabel" layoutX="498.0" layoutY="9.0" prefHeight="21.0" prefWidth="48.0"/>
-      <Button fx:id="enterButton" layoutX="823.0" layoutY="501.0" mnemonicParsing="false" onAction="#enterButtonAction" prefHeight="99.0" prefWidth="79.0" text="发送" />
+      <Label fx:id="chatLabel" layoutX="498.0" layoutY="9.0" prefHeight="21.0" prefWidth="48.0" />
+      <Button fx:id="sendMessageButton" layoutX="823.0" layoutY="567.0" mnemonicParsing="false" onAction="#enterButtonAction" prefHeight="33.0" prefWidth="79.0" text="发送" />
       <ListView fx:id="chattingRecords" layoutX="203.0" layoutY="30.0" prefHeight="467.0" prefWidth="699.0" />
       <Pane fx:id="unlockPlan" layoutX="203.0" layoutY="30.0" prefHeight="467.0" prefWidth="699.0" />
+      <Button fx:id="refresh" layoutX="823.0" layoutY="501.0" mnemonicParsing="false" onAction="#reFlushChattingRecords" prefHeight="33.0" prefWidth="79.0" text="刷新聊天" />
+      <Button fx:id="unlockingedAccountButton" layoutX="823.0" layoutY="534.0" mnemonicParsing="false" onAction="#unlockingedAccountAction" prefHeight="33.0" prefWidth="79.0" text="解锁账户" />
    </children>
 </AnchorPane>
