@@ -13,7 +13,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
@@ -148,6 +151,9 @@ public class ChatGuiController implements Initializable {
     public void addChattingRecordsEnd(ChatMessage chatMessage){
         chattingRecords.getItems().add(0,chatMessage);
     }
+    public void addChattingRecordsAll(List<ChatMessage> chatMessage){
+        chattingRecords.getItems().addAll(chatMessage);
+    }
 
     public void addChattingRecords(ChatMessage chatMessage){
         chattingRecords.getItems().add(chatMessage);
@@ -239,19 +245,21 @@ public class ChatGuiController implements Initializable {
         if (ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress())!=null
                 && ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress()).size()>0
         ) {
+            List<ChatMessage> chatMessageList=new ArrayList<>();
+            for (ChatMessage chatMessage : ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress())){
+
+                if (isMessyCode(chatMessage.getText()) || Objects.equals(chatMessage.getText(), "") ||chatMessage.getText()==null){
+//                    System.out.println("字符串包含乱码或为空");
+                }else {
+//                    System.out.println("字符串是有效的UTF-8编码");
+                    chatMessageList.add(0,chatMessage);
+                }
+            }
             Platform.runLater(() -> {
                 // 更新UI组件的代码
                 System.out.println("更新UI");
                 chatGuiController.chattingRecords.getItems().clear();
-                for (ChatMessage chatMessage : ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress())){
-
-                    if (isMessyCode(chatMessage.getText()) || Objects.equals(chatMessage.getText(), "") ||chatMessage.getText()==null){
-//                    System.out.println("字符串包含乱码或为空");
-                    }else {
-//                    System.out.println("字符串是有效的UTF-8编码");
-                        chatGuiController.addChattingRecordsEnd(chatMessage);
-                    }
-                }
+                chatGuiController.addChattingRecordsAll(chatMessageList);
             ChatGuiController.chatGuiController.chattingRecords.scrollTo(ChatGuiController.chatGuiController.chattingRecords.getItems().size()+1);
             });
 

@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
@@ -107,97 +108,128 @@ public class Web3 {
 //            System.out.println("字符串："+hexToUtf8(input));
 //        }else {
 //            System.out.println("Transaction not found");
-//        }
+//
 
-        System.out.println(utf8StringToHex(""));
-        try{
-            System.out.println(sendTransactionWithMessage(
-                    "0x58b986be5a5d4f850ff411c1b43a32fca1fd9c17cb962b0ce06e38de1de27fd5",
-                    "0xf8d4697231165be7068fad392150ba988a2c8105",
-                    ""
-                    )
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Failed to send transaction: " + e.getMessage());
 
+
+//        message.append(String.valueOf(message).repeat(250000));
+        for(int i =0;i<100;i++) {
+            StringBuilder message = new StringBuilder("我测试一下"+i);
+            byte[] bytes = message.toString().getBytes(StandardCharsets.UTF_8);
+            long byteCount = bytes.length; // 获取字节数组的长度
+
+
+//            System.out.println("调用sendTransaction方法");
+            try {
+                EthSendTransaction transaction = sendTransaction(
+                        "58b986be5a5d4f850ff411c1b43a32fca1fd9c17cb962b0ce06e38de1de27fd5",
+                        "0xf8d4697231165be7068fad392150ba988a2c8105",
+                        message.toString(),
+                        BigInteger.valueOf(3),
+                        BigInteger.valueOf(byteCount).multiply(BigInteger.valueOf(68)).add(BigInteger.valueOf(21000)),
+                        BigInteger.valueOf(i)
+                );
+                System.out.println("TxHash:   " +transaction.getTransactionHash());
+                if (transaction.getError()!=null){
+                    System.out.println("Error:   " + transaction.getError().getMessage());
+                    Thread.sleep(10000);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Failed to send transaction: " + e.getMessage());
+
+
+            }
         }
     }
-//    // 发送带消息的以太坊交易的方法
-//    public static String sendTransactionWithMessage(String fromPrivateKey, String toAddress, String message) throws Exception {
-//        Credentials credentials = Credentials.create(fromPrivateKey);
-//        BigInteger nonce = web3j_OKTC_test.ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.LATEST)
-//                .sendAsync()
-//                .get()
-//                .getTransactionCount();
-//
-//
-//        // 将消息转换为十六进制
-//        String hexMessage = "0x"+utf8StringToHex(message);
-//
-//        // 创建原始交易
-//        RawTransaction rawTransaction = RawTransaction.createTransaction(
-//                nonce,
-//                BigInteger.valueOf(1000), // 这里使用0 gas price，因为消息不执行任何操作
-//                BigInteger.valueOf(99999999), // 一个基本交易的gas limit
-//                toAddress, // 接收者的地址
-//                BigInteger.valueOf(0),//发送的数量
-//                hexMessage // 消息作为input data
-//        );
-//
-//// 6. 签名交易
-//        // 签名交易
-//        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
-//
-//
-//        // 发送交易
-//        EthSendTransaction ethSendTransaction = web3j_OKTC_test.ethSendRawTransaction(Numeric.toHexString(signedMessage))
-//                .sendAsync()
-//                .get();
-//
-//        // 返回交易哈希
-//        return ethSendTransaction.getTransactionHash();
-//    }
-public static String sendTransactionWithMessage(String fromPrivateKey, String toAddress, String message) throws Exception {
-    try {
+    /**
+     * 发送交易
+     * @param fromPrivateKey 地址
+     * @param toAddress 目标地址
+     * @param message 附加信息
+     * @param gasPrice gas价格
+     * @param gasLimit gas限制量
+     * @return 返回交易信息
+     */
+    public static EthSendTransaction sendTransaction(String fromPrivateKey, String toAddress, String message,BigInteger gasPrice,BigInteger gasLimit) throws Exception {
+        // 使用私钥创建Credentials对象
         Credentials credentials = Credentials.create(fromPrivateKey);
-        BigInteger nonce = web3j_OKTC_test.ethGetTransactionCount(credentials.getAddress(), DefaultBlockParameterName.LATEST)
-                .sendAsync()
-                .get()
-                .getTransactionCount();
 
-        String hexMessage = "0x" + utf8StringToHex(message);
+        // 获取nonce
+        EthGetTransactionCount ethGetTransactionCount = web3j_OKTC_test.ethGetTransactionCount(
+                credentials.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
 
+        // 获取当前链的chainId
+        EthChainId ethChainId = web3j_OKTC_test.ethChainId().sendAsync().get();
+        long chainId = ethChainId.getChainId().longValue();
+
+        // 将消息转换为16进制
+        String hexMessage = "0x"+utf8StringToHex(message);
+
+        // 创建RawTransaction
         RawTransaction rawTransaction = RawTransaction.createTransaction(
                 nonce,
-                BigInteger.valueOf(1000), // 合理设置 gas price
-                BigInteger.valueOf(21000),      // 合理设置 gas limit
-                toAddress,
-                BigInteger.ZERO,                   // 不发送以太币
-                hexMessage);
+                gasPrice, // gas price, 单价
+                gasLimit, // gas limit, gas数量限制
+                toAddress, // to address
+                hexMessage // data
+        );
 
-        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+        // 签名交易
+        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, chainId, credentials);
 
-        EthSendTransaction ethSendTransaction = web3j_OKTC_test.ethSendRawTransaction(Numeric.toHexString(signedMessage))
-                .sendAsync()
-                .get();
 
-        if (ethSendTransaction == null || ethSendTransaction.getTransactionHash() == null) {
-            // 处理错误情况
-            throw new Exception("Transaction was not sent successfully");
-        }
-
-        return ethSendTransaction.getTransactionHash();
-    } catch (InterruptedException | ExecutionException e) {
-        // 处理可能的中断或执行异常
-        throw new Exception("Error sending transaction", e);
+        String signedRawTx = Numeric.toHexString(signedMessage);
+        // 发送原始交易
+        System.out.println("开始发送交易");
+        // 返回交易
+        return web3j_OKTC_test.ethSendRawTransaction(signedRawTx).sendAsync().get();
     }
-}
-//    public static String sendTransaction(String fromPrivateKey, String toAddress, String message) throws Exception {
-//        Credentials credentials = Credentials.create(fromPrivateKey);
-//        TransactionReceipt transactionReceipt = Transfer.sendFunds(
-//                web3j_OKTC_test, credentials, toAddress,
-//                BigDecimal.valueOf(0.001), Convert.Unit.ETHER,new BigInteger("65")).send();
-//        return transactionReceipt.getTransactionHash();
-//    }
+
+    /**
+     * 发送交易
+     * @param fromPrivateKey 地址
+     * @param toAddress 目标地址
+     * @param message 附加信息
+     * @param gasPrice gas价格
+     * @param gasLimit gas限制量
+     * @param nonceAdd 需要添加的nonce数量
+     * @return 返回交易信息
+     */
+    public static EthSendTransaction sendTransaction(String fromPrivateKey, String toAddress, String message,BigInteger gasPrice,BigInteger gasLimit,BigInteger nonceAdd) throws Exception {
+        // 使用私钥创建Credentials对象
+        Credentials credentials = Credentials.create(fromPrivateKey);
+
+        // 获取nonce
+        EthGetTransactionCount ethGetTransactionCount = web3j_OKTC_test.ethGetTransactionCount(
+                credentials.getAddress(), DefaultBlockParameterName.LATEST).sendAsync().get();
+        BigInteger nonce = ethGetTransactionCount.getTransactionCount();
+        nonce = nonce.add(nonceAdd);
+        // 获取当前链的chainId
+        EthChainId ethChainId = web3j_OKTC_test.ethChainId().sendAsync().get();
+        long chainId = ethChainId.getChainId().longValue();
+
+        // 将消息转换为16进制
+        String hexMessage = "0x"+utf8StringToHex(message);
+
+        // 创建RawTransaction
+        RawTransaction rawTransaction = RawTransaction.createTransaction(
+                nonce,
+                gasPrice, // gas price, 单价
+                gasLimit, // gas limit, gas数量限制
+                toAddress, // to address
+                hexMessage // data
+        );
+
+        // 签名交易
+        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, chainId, credentials);
+
+
+        String signedRawTx = Numeric.toHexString(signedMessage);
+        // 发送原始交易
+        System.out.println("开始发送交易");
+        // 返回交易
+        return web3j_OKTC_test.ethSendRawTransaction(signedRawTx).sendAsync().get();
+    }
 }
