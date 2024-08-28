@@ -123,31 +123,30 @@ public class HtmlPageFetcher {
      * @param address_2 地址
      * @param chain_2 链
      * @param offset_2 起始位置
-     * @param once_2 结束位置（最大9999）
+     * @param limit 获取数量（最大100）
      * @return 交易列表
      */
-    public static List<Map<String,Object>> getArrayTxList(String key_2,String address_2,String chain_2,int offset_2,int once_2) {
+    public static List<Map<String,Object>> getArrayTxList(String key_2,String address_2,String chain_2,int offset_2,int limit) {
         List<Map<String, Object>> txList_2 = new ArrayList<>();
 
         try {
-            while (offset_2 <= once_2) {
-                String[] tx = getAddressTx(key_2, address_2, offset_2, (once_2-offset_2)>100?100:offset_2, chain_2);
+
+                String[] tx = getAddressTx(key_2, address_2, offset_2, limit, chain_2);
                 if (!tx[0].equals("0")) {
-                    break;
+                    return txList_2;
                 }
                 // 解析JSON字符串为JSONObject
                 JSONObject jsonObject = JSONObject.parse(tx[1]);
                 // 检查错误代码是否为0，如果不是0则退出循环
                 if(!jsonObject.getString("code").equals("0")){
-                    break;
+                    return txList_2;
                 }
                 List<Map<String, Object>> t = parseHitsList(tx[1]);
                 if(t.size()==0){
-                    break;
+                    return txList_2;
                 }
                 txList_2.addAll(t);
-                offset_2 = offset_2+t.size();
-            }
+
         }catch (Exception e){
             return null;
         }

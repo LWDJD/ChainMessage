@@ -260,7 +260,7 @@ public class ChatGuiController implements Initializable {
                 System.out.println("更新UI");
                 chatGuiController.chattingRecords.getItems().clear();
                 chatGuiController.addChattingRecordsAll(chatMessageList);
-            ChatGuiController.chatGuiController.chattingRecords.scrollTo(ChatGuiController.chatGuiController.chattingRecords.getItems().size()+1);
+            ChatGuiController.chatGuiController.chattingRecords.scrollTo(ChatGuiController.chatGuiController.chattingRecords.getItems().size());
             });
 
 

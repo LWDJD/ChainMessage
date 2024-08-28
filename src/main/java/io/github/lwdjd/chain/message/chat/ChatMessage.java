@@ -62,7 +62,7 @@ public class ChatMessage {
                 Sender loadFailure = new Sender("0x0000000000000000000000000000000000000000", null);
 
                 List<ChatMessage> cryptographicChatMessageListTemp = (getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress()) == null ? new ArrayList<>() : getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress()));
-                List<String[]> CryptographicChatMapTxHashList = Message.getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress());
+                List<String[]> CryptographicChatMapTxHashList = new ArrayList<>(Message.getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress())) ;
 //                List<String[]> Temp = new ArrayList<>();
 //                System.out.println("CryptographicChatMapTxHashList.size(): "+CryptographicChatMapTxHashList.size());
 //                if (cryptographicChatMessageListTemp.size() == 0) {
@@ -144,6 +144,8 @@ public class ChatMessage {
                 if (CryptographicChatMapTxHashList.size()==0){
                     return;
                 }
+                System.out.println("执行到我了");
+
 
                 A:
                 for (String[] strings : CryptographicChatMapTxHashList) {
@@ -257,6 +259,8 @@ public class ChatMessage {
                     }
                     putCryptographicChatMapChatMessageList(chat.getCryptographicAddress(), cryptographicChatMessageListTemp);
                     //监听返回
+
+
                 }
                 //监听返回
 //                System.out.println("执行到runnable_2 loadMessage B了");

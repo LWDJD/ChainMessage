@@ -102,7 +102,13 @@ public class Message {
                 System.out.println("X-API-KEY: "+ConfigManager.getConfig("config.json").get("X-API-KEY").toString());
                 List<String[]> txHashList = (getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress())==null?new ArrayList<>():getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress()));
                 for(int i=0;i<=9999;) {
+                    System.out.println("正在获取第 " + (i) + " 之后的交易哈希...");
                     List<Map<String, Object>> txList = HtmlPageFetcher.getArrayTxList(ConfigManager.getConfig("config.json").get("X-API-KEY").toString(), chat.getAddress(), chat.getChain().getDisplayID(),i, 100);
+                    if (txList == null ){
+                        System.out.println("txList == null");
+                    }else {
+                        System.out.println("txList.size() == "+txList.size());
+                    }
                     //在此处返回列表更新全部完成监听
                     if (txList != null && txList.size() != 0) {
                         i = i + txList.size();
@@ -149,7 +155,7 @@ public class Message {
                             }
                         }
                         putCryptographicChatMapTxHashList(chat.getCryptographicAddress(), txHashList);
-//                        System.out.println("加载聊天 " + chat.getCryptographicAddress() + " 交易哈希表加载进度：" + i + "/" + 10000);
+                        System.out.println("加载聊天 " + chat.getCryptographicAddress() + " 交易哈希表加载进度：" + i + "/" + 10000);
                         //在此处返回列表更新监听
                         Runnable  runnable_2 = () -> ChatMessage.loadChatMessageList(chat);
                         new Thread(runnable_2).start();
