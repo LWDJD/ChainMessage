@@ -9,7 +9,7 @@
 
 ## 如何使用
 
-* [ ]
+
 * [ ] 打开后在左上角有选项；
 * [ ] 在账户选项中导入或创建一个账户（仅支持OKTC-test链）；
 * [ ] 在聊天选项中添加一个聊天地址（仅支持频道模式）；
@@ -29,7 +29,7 @@
 
 ## 如何获取`OKT`测试代币
 
-* [ ]在[OKTC 测试网 水龙头](https://www.okx.com/zh-hans/oktc/faucet)领取测试代币
+* [ ] 在[OKTC 测试网 水龙头](https://www.okx.com/zh-hans/oktc/faucet)领取测试代币
 
 ---
 
