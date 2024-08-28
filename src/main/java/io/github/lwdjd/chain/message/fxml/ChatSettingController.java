@@ -317,7 +317,7 @@ class CreateChat{
         PasswordField importRePasswordField = new PasswordField();
         ComboBox<Chat.ChatType> typeComboBox = new ComboBox<>();
         ObservableList<Chat.ChatType> typeComboBoxItems = FXCollections.observableArrayList();
-        typeComboBoxItems.addAll(Chat.ChatType.PRIVATE_CHAT);
+//        typeComboBoxItems.addAll(Chat.ChatType.PRIVATE_CHAT);
         typeComboBoxItems.addAll(Chat.ChatType.PUBLIC_CHAT);
         typeComboBox.setItems(typeComboBoxItems);
         typeComboBox.setMaxWidth(150);

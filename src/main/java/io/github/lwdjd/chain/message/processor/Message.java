@@ -1,6 +1,7 @@
 package io.github.lwdjd.chain.message.processor;
 
 import io.github.lwdjd.chain.message.chat.Chat;
+import io.github.lwdjd.chain.message.chat.ChatMessage;
 import io.github.lwdjd.chain.message.config.ConfigManager;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -9,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Message {
 
@@ -138,7 +141,6 @@ public class Message {
                                     } else {
                                         txHashList.add(index, new String[]{txHash, txTime});
                                     }
-                                    //在此处返回列表更新监听
 
                                 }
 //                                txHashList.add();
@@ -147,12 +149,15 @@ public class Message {
                             }
                         }
                         putCryptographicChatMapTxHashList(chat.getCryptographicAddress(), txHashList);
-                        System.out.println("加载聊天 " + chat.getCryptographicAddress() + " 交易哈希表加载进度：" + i + "/" + 9999);
+//                        System.out.println("加载聊天 " + chat.getCryptographicAddress() + " 交易哈希表加载进度：" + i + "/" + 10000);
+                        //在此处返回列表更新监听
+                        Runnable  runnable_2 = () -> ChatMessage.loadChatMessageList(chat);
+                        new Thread(runnable_2).start();
                     }else {
                         break;
                     }
                 }
-                System.out.println("加载聊天 " + chat.getCryptographicAddress() + " 加载完成，交易哈希数量：" + (getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress())==null?0: getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress()).size()));
+//                System.out.println("加载聊天 " + chat.getCryptographicAddress() + " 加载完成，交易哈希数量：" + (getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress())==null?0: getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress()).size()));
 
             };
             Thread thread = new Thread(runnable);
@@ -222,4 +227,52 @@ public class Message {
             threadsLock.unlock();
         }
     }
+
+
+    /**
+     * 源码链接：<a href="https://blog.csdn.net/qq_35661171/article/details/114284157">...</a>
+     * 判断字符是否为中文
+     * @param c
+     * @return 字符是中文返回 true, 否则返回false
+     */
+    private static boolean isChinese(char c) {
+        Character.UnicodeBlock ub = Character.UnicodeBlock.of(c);
+        if (ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+                || ub == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+                || ub == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+                || ub == Character.UnicodeBlock.GENERAL_PUNCTUATION
+                || ub == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION
+                || ub == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS) {
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * 源码链接：<a href="https://blog.csdn.net/qq_35661171/article/details/114284157">...</a>
+     * 判断字符串是否包含乱码
+     * @param strText  需要判断的字符串
+     * @return 字符串包含乱码则返回true, 字符串不包含乱码则返回false
+     */
+    public static boolean isMessyCode(String strText) {
+        Pattern p = Pattern.compile("\\s*|\t*|\r*|\n*");
+        Matcher m = p.matcher(strText);
+        String after = m.replaceAll("");
+        String temp = after.replaceAll("\\p{P}", "");
+        char[] ch = temp.trim().toCharArray();
+        float chLength = 0 ;
+        float count = 0;
+        for (char c : ch) {
+            if (!Character.isLetterOrDigit(c)) {
+                if (!isChinese(c)) {
+                    count = count + 1;
+                }
+                chLength++;
+            }
+        }
+        float result = count / chLength ;
+        return result > 0.4;
+    }
+
 }

@@ -4,6 +4,7 @@ import io.github.lwdjd.chain.message.account.Account;
 import io.github.lwdjd.chain.message.chat.Chat;
 import io.github.lwdjd.chain.message.chat.ChatMessage;
 import io.github.lwdjd.chain.message.processor.Message;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -12,11 +13,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -25,7 +25,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static io.github.lwdjd.chain.message.chat.ChatMessage.loadChatMessageList;
+import static io.github.lwdjd.chain.message.processor.Message.isMessyCode;
 import static io.github.lwdjd.chain.message.processor.Message.loadMessageHash;
 
 // 控制器类
@@ -36,10 +36,12 @@ public class ChatGuiController implements Initializable {
     public MenuItem accountMenuItem;
     public MenuItem chatMenuItem;
     public MenuItem settingMenuItem;
+    public String thisChatAddress = "";
     public ComboBox<Account> accountList = new ComboBox<>();
     public static ChatGuiController chatGuiController;
     public ListView<Chat> chatList;
     public Pane unlockPlan;
+    public Label chatLabel = new Label("");
 
 
     @Override
@@ -53,7 +55,7 @@ public class ChatGuiController implements Initializable {
                 if (newChattingRecordsPane==null){
                     unlockPlan.getChildren().clear();
                     unlockPlan.setPickOnBounds(false);
-                }else {
+                } else {
                     updateChattingUnlockRPane(newChattingRecordsPane);
                 }
             } catch (Exception e) {
@@ -166,6 +168,7 @@ public class ChatGuiController implements Initializable {
         unlockPlan.setPickOnBounds(false);
         chattingRecords.setItems(FXCollections.observableArrayList());
         if (!chat.verificationKey()){
+            thisChatAddress = "";
             VBox  vBox = new VBox(10);
             vBox.setPrefWidth(699);
 
@@ -206,56 +209,63 @@ public class ChatGuiController implements Initializable {
             unlockPlan.getChildren().clear();
             unlockPlan.setPickOnBounds(false);
             loadChattingRecords(chat);
+//            chatLabel.setText("【"+chat.getChatType()+"】"+chat.getRemarkName());
         }
     }
 
     public void loadChattingRecords(Chat chat){
+        thisChatAddress = chat.getAddress();
 //        Sender sender = new Sender("0x0000000000000000000000000000000000000000",null);
         if ( Message.getThreads().get(chat.getAddress()) == null || Message.getThreads().get(chat.getAddress()).getState() == Thread.State.TERMINATED ){
-            loadMessageHash(chat);
+            new Thread(() -> loadMessageHash(chat)).start();
         }else {
             System.out.println(chat.getAddress()+"上次的哈希表更新线程未结束");
         }
-        if((ChatMessage.getThreads().get(chat.getAddress()) == null || ChatMessage.getThreads().get(chat.getAddress()).getState() == Thread.State.TERMINATED)
-                && Message.getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress())!=null
-                && Message.getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress()).size()>0
-        ){
-            loadChatMessageList(chat);
-        }else {
-            System.out.println(chat.getAddress()+"上次的聊天记录更新线程未结束或没有聊天记录");
-        }
-        if (ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress())!=null
-                && ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress()).size()>0
-        ) {
-            Runnable runnable = () -> {
-                //            chattingRecords.getItems().addAll(
-//                    ChatMessage.getCryptographicChatMapChatMessageList().get(
-//                            chat.getCryptographicAddress()
-//                    )
-//            );
-                chattingRecords.getItems().clear();
-                for (ChatMessage chatMessage : ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress())){
-                    addChattingRecordsEnd(chatMessage);
-                }
-//            for (int i  =  ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress()).size()-1; i >= 0; i--){
-//                addChattingRecords(ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress()).get(i));
-//            }
+//        if((ChatMessage.getThreads().get(chat.getAddress()) == null || ChatMessage.getThreads().get(chat.getAddress()).getState() == Thread.State.TERMINATED)
+//                && Message.getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress())!=null
+//                && Message.getCryptographicChatMapTxHashList().get(chat.getCryptographicAddress()).size()>0
+//        ){
+//            loadChatMessageList(chat);
+//        }else {
+//            System.out.println(chat.getAddress()+"上次的聊天记录更新线程未结束或没有聊天记录");
+//        }
+        new Thread(() -> loadMessage(chat)).start();
 
-            };
-            new Thread(runnable).start();
-
-        }else {
-            System.out.println("聊天记录为空");
-        }
 
 //        addChattingRecordsEnd(new ChatMessage(sender,"1724623121485","是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。是的，这是一个测试。"));
     }
 
+    public static void loadMessage(Chat chat){
+        if (ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress())!=null
+                && ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress()).size()>0
+        ) {
+            Platform.runLater(() -> {
+                // 更新UI组件的代码
+                System.out.println("更新UI");
+                chatGuiController.chattingRecords.getItems().clear();
+                for (ChatMessage chatMessage : ChatMessage.getCryptographicChatMapChatMessageList().get(chat.getCryptographicAddress())){
+
+                    if (isMessyCode(chatMessage.getText()) || Objects.equals(chatMessage.getText(), "") ||chatMessage.getText()==null){
+//                    System.out.println("字符串包含乱码或为空");
+                    }else {
+//                    System.out.println("字符串是有效的UTF-8编码");
+                        chatGuiController.addChattingRecordsEnd(chatMessage);
+                    }
+                }
+            ChatGuiController.chatGuiController.chattingRecords.scrollTo(ChatGuiController.chatGuiController.chattingRecords.getItems().size()+1);
+            });
 
 
+        }else {
+            System.out.println("聊天记录为空");
+        }
+    }
+
+
+    //历史聊天元素设置
     static class ChattingRecordsCell extends ListCell<ChatMessage> {
         {
-            setPrefWidth(699); // 设置列表项的宽度
+            setPrefWidth(640); // 设置列表项的宽度
         }
         @Override
         protected void updateItem(ChatMessage item, boolean empty) {
@@ -287,15 +297,27 @@ public class ChatGuiController implements Initializable {
 //                maskPane.getClip().setLayoutY(maskPane.getChildren().get(0).getLayoutY());
 
 
-                Text name;
-                if (item.getSender().getRemarkName() !=null){
-                    name = new Text(item.getSender().getRemarkName());
-                }else if(item.getSender().getName() !=null){
-                    name = new Text(item.getSender().getName());
-                }else if (item.getSender().getAddress() !=null){
-                    name = new Text(item.getSender().getAddress());
-                }else {
-                    name = new Text("未知用户");
+                Text name = new Text("");
+                for(Account account : Account.getAccountList()){
+                    if (Objects.equals("0x"+account.getAddress(), item.getSender().getAddress())){
+                        name = new Text("[本地账户]"+account.getName());
+                    }
+                }
+                if(item.getSender().getAddress().equals(chatGuiController.thisChatAddress)) {
+                    name = new Text("[本频道主]");
+                }
+                if (name.getText().equals("")||name.getText().equals("[本频道主]")){
+                    if (item.getSender().getRemarkName() !=null){
+                        name = new Text(name.getText()+item.getSender().getRemarkName());
+                    }else if(item.getSender().getName() !=null){
+                        name = new Text(name.getText()+item.getSender().getName());
+                    }else if (item.getSender().getAddress() !=null){
+                        if (!name.getText().equals("[本频道主]")) {
+                            name = new Text(name.getText() + item.getSender().getAddress());
+                        }
+                    }else {
+                        name = new Text(name.getText()+"未知用户");
+                    }
                 }
 
 
@@ -307,19 +329,34 @@ public class ChatGuiController implements Initializable {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
                 // 设置时区为 UTC+8
-                dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+16:00"));
+                dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+8:00"));
 
                 // 将 Date 对象格式化为字符串
                 String formattedDate = dateFormat.format(date);
 
                 name.setText(name.getText()+"    时间: "+formattedDate);
-                TextArea messageTextArea  = new TextArea(item.getText());
-                messageTextArea.setPrefWidth(500);
-                messageTextArea.setWrapText(true);
-                messageTextArea.setEditable(false);
+
+
+                Label label = new Label(item.getText());
+                label.setWrapText(true); // 启用自动换行
+                label.setMaxWidth(500); // 设置最大宽度
+                // 监听文本变化，自动调整宽度
+                label.textProperty().addListener((observable, oldValue, newValue) -> {
+                    double currentWidth = label.prefWidth(-1); // 获取当前首选宽度
+                    label.setPrefWidth(Math.max(currentWidth, 500)); // 至少500px宽
+                });
+
+//                VBox root = new VBox(label);
+
+//                TextArea messageTextArea  = new TextArea(item.getText());
+//                messageTextArea.setPrefWidth(500);
+//                messageTextArea.setWrapText(true);
+//                messageTextArea.setEditable(false);
+
+
                 VBox vBox = new VBox(
                         name,
-                        messageTextArea
+                        new Bubble(item.getText())
                 );
                 vBox.setPrefWidth(500);
 
@@ -368,8 +405,24 @@ public class ChatGuiController implements Initializable {
                         maskPane,
                         text
                 );
+
                 setGraphic(hbox);
             }
         }
+    }
+
+}
+class Bubble extends StackPane {
+    public Bubble(String message) {
+        Text text = new Text(message);
+        text.setFill(Color.WHITE);
+        text.setFont(Font.font(12));
+        text.setWrappingWidth(500);
+        // 创建文本框显示消息
+        getChildren().add(text);
+        // 将文本框添加至气泡
+        setStyle("-fx-background-color: DodgerBlue; -fx-background-radius: 15; -fx-padding: 10;");
+        // 设置样式
+        setMaxWidth(text.getWrappingWidth()); // 自动根据内容宽度调整气泡宽度 }}
     }
 }
