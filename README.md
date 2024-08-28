@@ -29,7 +29,7 @@
 
 ## 如何获取`OKT`测试代币
 
-* [ ] 在[OKTC 测试网 水龙头](https://www.okx.com/zh-hans/oktc/faucet)领取测试代币
+* [ ] 在[OKTC 测试网 水龙头](https://www.okx.com/zh-hans/oktc/faucet)领取测试代币( 需要使用科学上网 )
 
 ---
 
