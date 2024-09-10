@@ -4,7 +4,7 @@
 * [ ] 内置查询交易信息，16进制Input Data自动转换为文本（UTF8）等功能。
 * [ ] 具有账户和聊天的管理功能
 * [ ] 可以与其他人在相同 地址的频道 聊天交流
-  
+* [ ] [教程视频](https://www.bilibili.com/video/BV14Bs5e6E3q/)
 ---
 
 ## 如何使用
@@ -42,6 +42,10 @@
 * [ ] conditionoffset=0&limit=20&address=0x*********************&nonzeroValue=false&t=1724280611286
 * [ ] 打开后找到标头数据；
 * [ ] 向下翻找到请求标头中的x-apikey，后面跟着的就是x-apikey。
+* [ ] 附几个x-apikey，应该可以直接用：
+* [ ] LWIzMWUtNDU0Ny05Mjk5LWI2ZDA3Yjc2MzFhYmEyYzkwM2NjfDI4MzcwODY2MDAwMjYzMzQ=
+* [ ] LWIzMWUtNDU0Ny05Mjk5LWI2ZDA3Yjc2MzFhYmEyYzkwM2NjfDI4MzcwODY2NjM2ODgxMTk=
+* [ ] LWIzMWUtNDU0Ny05Mjk5LWI2ZDA3Yjc2MzFhYmEyYzkwM2NjfDI4MzcwODY3MDYyMzkwNDk=
 
 ---
 
