@@ -1,6 +1,6 @@
 # 欢迎使用ChainMessage
 
-* [ ] [CainMessage](https://github.com/LWDJD/ChainMessage)，是一款基于 JAVA，为实现在区块链聊天的软件；
+* [ ] [ChainMessage](https://github.com/LWDJD/ChainMessage)，是一款基于 JAVA，为实现在区块链聊天的软件；
 * [ ] 内置查询交易信息，16进制Input Data自动转换为文本（UTF8）等功能。
 * [ ] 具有账户和聊天的管理功能
 * [ ] 可以与其他人在相同 地址的频道 聊天交流
