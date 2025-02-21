@@ -1,3 +1,4 @@
+<font color=red>此项目已弃用，由于OKTC测试链 API已经无法使用，以及做其他项目没有时间，此项目大概率不会再更新。</font>
 # 欢迎使用ChainMessage
 
 * [ ] [ChainMessage](https://github.com/LWDJD/ChainMessage)，是一款基于 JAVA，为实现在区块链聊天的软件；
